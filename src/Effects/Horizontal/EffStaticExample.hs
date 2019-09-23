@@ -5,6 +5,7 @@ module Effects.Horizontal.EffStaticExample where
 import Effects.Horizontal.Eff
 import Effects.Horizontal.Static.Union2
 import Effects.Future
+import Effects.Writer
 import System.IO.Unsafe (unsafePerformIO)
 import Data.IORef (newIORef, readIORef, modifyIORef)
 import Data.List (find, deleteBy)
@@ -28,6 +29,9 @@ get id = send (fromDB id)
 encrypt :: Maybe Entry -> Comp Future (Maybe String)
 encrypt (Just entry) = send (Async $ return $ Just $ hash entry)
 encrypt (Nothing) = send (Sync $ Nothing)
+
+log :: String -> Comp (Writer [String]) ()
+log msg = send (tell [msg])
 
 runGet :: Comp (Union IO r2) a -> Comp r2 a
 runGet (Value a)          = Value a
