@@ -3,7 +3,7 @@ module Effects.Vertical.Transformers.WriterT where
 import Effects.Writer
 import Effects.Vertical.Lift
 
-data WriterT w f a = WriterT { runWriter :: f (Writer w a) }
+data WriterT w f a = WriterT { runWriterT :: f (Writer w a) }
 
 instance Functor f => Functor (WriterT w f) where
     fmap f (WriterT fa) = WriterT $ fmap applyF fa
@@ -23,4 +23,4 @@ instance (Monad f, Monoid w) => Monad (WriterT w f) where
               merge w (Writer w' b) = Writer (w <> w') b
 
 instance Monoid w => (Lift (WriterT w)) where
-    lift fa = WriterT { runWriter = fmap (Writer mempty) fa }
+    lift fa = WriterT { runWriterT = fmap (Writer mempty) fa }

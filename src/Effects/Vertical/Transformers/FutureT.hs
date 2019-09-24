@@ -1,7 +1,8 @@
 module Effects.Vertical.Transformers.FutureT where
 
 import System.IO.Unsafe (unsafePerformIO)
-import Effects.Future (Future, Future(Sync, Async))
+import Effects.Future
+import Effects.Vertical.Lift
 
 data FutureT m a = FutureT { runFutureT :: m (Future a) }
 
@@ -20,3 +21,6 @@ instance (Monad m) => Monad (FutureT m) where
     (FutureT mfa) >>= f = FutureT (mfa >>= unwrap)
         where unwrap (Async io) = runFutureT $ f $ (unsafePerformIO io)
               unwrap (Sync a)   = runFutureT $ f a
+
+instance Lift FutureT where
+    lift fa = FutureT { runFutureT = fmap Sync fa }
