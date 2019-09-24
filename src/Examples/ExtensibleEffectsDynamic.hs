@@ -63,7 +63,6 @@ runLog (Effect r f) = case (decompose r) of
     (Right (Writer logs a)) -> fmap insertLogs $ runLog (f a)
         where insertLogs (rest, res) = (logs <> rest, res)
 
-
 -- The problem with this is that i sort of have to let it infer everything that I do
 -- If I separate these things into separate functions, I have to prove, for each, that the kind i'm trying to add to the union can be a member
 -- So that the union can add it to itself and infer a new list.  

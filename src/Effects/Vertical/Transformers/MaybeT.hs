@@ -1,6 +1,6 @@
 module Effects.Vertical.Transformers.MaybeT where
 
-import Effects.Lift
+import Effects.Vertical.Lift
 
 data MaybeT m a = MaybeT { runMaybeT :: m (Maybe a) }
 
