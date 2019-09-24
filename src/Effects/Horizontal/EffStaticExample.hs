@@ -24,15 +24,24 @@ fromDB id = do
 hash :: Entry -> String
 hash (Entry id version payload) = id <> "::" <> (show version) <> "::" <> (show payload)
 
-get :: String -> Comp IO (Maybe Entry)
-get id = send (fromDB id)
+getComp :: String -> Comp IO (Maybe Entry)
+getComp id = send (fromDB id)
 
-encrypt :: Maybe Entry -> Comp Future (Maybe String)
-encrypt (Just entry) = send (Async $ return $ Just $ hash entry)
-encrypt (Nothing) = send (Sync $ Nothing)
+encryptComp :: Maybe Entry -> Comp Future (Maybe String)
+encryptComp (Just entry) = send (Async $ return $ Just $ hash entry)
+encryptComp (Nothing) = send (Sync $ Nothing)
 
-echo :: String -> Comp (Writer [String]) ()
-echo msg = send (tell [msg])
+echoComp :: String -> Comp (Writer [String]) ()
+echoComp msg = send (tell [msg])
+
+get :: String -> Comp (U3.Union IO r1 r2) (Maybe Entry)
+get = U3.injectP1 . getComp
+
+encrypt :: Maybe Entry -> Comp (U3.Union r1 Future r2) (Maybe String)
+encrypt = U3.injectP2 . encryptComp
+
+echo :: String -> Comp (U3.Union r1 r2 (Writer [String])) ()
+echo = U3.injectP3 . echoComp
 
 decomp :: Comp (U3.Union r1 r2 r3) a -> Comp (U2.Union r2 r3) a
 decomp (Value a)            = Value a
@@ -56,11 +65,11 @@ runLog (Effect (Writer logs a) f) = let (rest, x) = runLog (f a)
 
 readEncrypt :: String -> Comp (U3.Union IO Future (Writer [String])) (Maybe String)
 readEncrypt id = do
-    mentry    <- U3.injectP1 $ get id
-    _         <- U3.injectP3 $ echo ("Entry is " <> (show mentry))
-    encrypted <- U3.injectP2 $ encrypt mentry
-    _         <- U3.injectP3 $ echo ("Encryped entry")
-    _         <- U3.injectP3 $ echo ("Value is: " <> (show encrypted))
+    mentry    <- get id
+    _         <- echo ("Entry is " <> (show mentry))
+    encrypted <- encrypt mentry
+    _         <- echo ("Encryped entry")
+    _         <- echo ("Value is: " <> (show encrypted))
     return encrypted
 
 main :: IO ()
