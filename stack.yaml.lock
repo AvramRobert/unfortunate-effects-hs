@@ -5,15 +5,15 @@
 
 packages:
 - completed:
-    hackage: HList-0.5.0.0@sha256:7d7a0bee8d01a7e0e10bf96c5214a21bebae3ecfc02d14fc13bf75458b38ac43,7137
+    hackage: freer-0.2.4.1@sha256:f8650d4787f0909b7887188f0f1ff84ead5f5932d4c3a2d3e49120b7d95b3c5d,3221
     pantry-tree:
-      size: 5718
-      sha256: 2881dd9fe6ee24dad62ecd68be6d98e834823d21b659f4ff0de87475e33371f1
+      size: 2422
+      sha256: 72cfa2d46da31f281a2337dfef9d863cd3b919a561d07230fda44cf5b811953e
   original:
-    hackage: HList-0.5.0.0@sha256:7d7a0bee8d01a7e0e10bf96c5214a21bebae3ecfc02d14fc13bf75458b38ac43,7137
+    hackage: freer-0.2.4.1@sha256:f8650d4787f0909b7887188f0f1ff84ead5f5932d4c3a2d3e49120b7d95b3c5d,3221
 snapshots:
 - completed:
-    size: 527836
-    url: https://raw.githubusercontent.com/commercialhaskell/stackage-snapshots/master/lts/11/22.yaml
-    sha256: 341870ac98d8a9f8f77c4adf2e9e0b22063e264a7fbeb4c85b7af5f380dac60e
-  original: lts-11.22
+    size: 524104
+    url: https://raw.githubusercontent.com/commercialhaskell/stackage-snapshots/master/lts/14/5.yaml
+    sha256: 3c146eebc1b383211ea49d5422fb3d63d699da12307b4bc989107300eb579d60
+  original: lts-14.5

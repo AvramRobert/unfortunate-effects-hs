@@ -1,6 +1,6 @@
 {-# LANGUAGE GADTs #-}
 
-module Effects.Horizontal.EffTest where
+module Examples.EffTest where
 
 import Effects.Horizontal.Eff
 import Effects.Horizontal.Static.Union2

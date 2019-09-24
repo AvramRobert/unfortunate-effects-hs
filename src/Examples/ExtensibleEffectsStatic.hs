@@ -1,6 +1,6 @@
 {-# LANGUAGE GADTs #-}
 
-module Effects.Horizontal.EffStaticExample where
+module Examples.ExtensibleEffectsStatic where
 
 import Effects.Horizontal.Eff
 import qualified Effects.Horizontal.Static.Union2 as U2

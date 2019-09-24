@@ -1,0 +1,1 @@
+module Examples.FreeMonad where
