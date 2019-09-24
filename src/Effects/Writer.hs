@@ -1,5 +1,7 @@
 module Effects.Writer where
 
+import Data.Monoid ((<>))
+
 data Writer w a = Writer w a
 
 tell :: w -> Writer w ()

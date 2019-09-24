@@ -1,5 +1,7 @@
 module Effects.Future where
 
+import Data.Monoid ((<>))
+
 data Future a = Async (IO a) | Sync a
 
 instance Show a => Show (Future a) where

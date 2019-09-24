@@ -10,6 +10,7 @@ import Effects.Writer
 import System.IO.Unsafe (unsafePerformIO)
 import Data.IORef (newIORef, readIORef, modifyIORef)
 import Data.List (find, deleteBy)
+import Data.Monoid ((<>))
 
 data Entry = Entry { index :: String, version :: Integer, payload :: Int } deriving (Show)
 
