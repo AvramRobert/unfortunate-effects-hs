@@ -23,14 +23,14 @@ hash :: Entry -> String
 hash (Entry id version payload) = id <> "::" <> (show version) <> "::" <> (show payload)
 
 getComp :: String -> Comp IO (Maybe Entry)
-getComp id = send (fromDB id)
+getComp id = perform (fromDB id)
 
 encryptComp :: Maybe Entry -> Comp Future (Maybe String)
-encryptComp (Just entry) = send (Async $ return $ Just $ hash entry)
-encryptComp (Nothing) = send (Sync $ Nothing)
+encryptComp (Just entry) = perform (Async $ return $ Just $ hash entry)
+encryptComp (Nothing)    = perform (Sync $ Nothing)
 
 echoComp :: String -> Comp (Writer [String]) ()
-echoComp msg = send (tell [msg])
+echoComp msg = perform (tell [msg])
 
 get :: Member IO l => String -> Comp (Union l) (Maybe Entry)
 get = inject . getComp

@@ -23,5 +23,5 @@ instance Monad (Comp r) where
     (Value a)    >>= f = f a
     (Effect r f) >>= g = Effect r (\x -> (f x) >>= g)
 
-send :: r a -> Comp r a
-send r = Effect r Value
+perform :: r a -> Comp r a
+perform r = Effect r Value

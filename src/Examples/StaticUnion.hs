@@ -22,14 +22,14 @@ hash :: Entry -> String
 hash (Entry id version payload) = id <> "::" <> (show version) <> "::" <> (show payload)
 
 getComp :: String -> Comp IO (Maybe Entry)
-getComp id = send (fromDB id)
+getComp id = perform (fromDB id)
 
 encryptComp :: Maybe Entry -> Comp Future (Maybe String)
-encryptComp (Just entry) = send (Async $ return $ Just $ hash entry)
-encryptComp (Nothing) = send (Sync $ Nothing)
+encryptComp (Just entry) = perform (Async $ return $ Just $ hash entry)
+encryptComp (Nothing)    = perform (Sync $ Nothing)
 
 echoComp :: String -> Comp (Writer [String]) ()
-echoComp msg = send (tell [msg])
+echoComp msg = perform (tell [msg])
 
 get :: String -> Comp (U3.Union IO r1 r2) (Maybe Entry)
 get = U3.injectP1 . getComp
@@ -40,14 +40,9 @@ encrypt = U3.injectP2 . encryptComp
 echo :: String -> Comp (U3.Union r1 r2 (Writer [String])) ()
 echo = U3.injectP3 . echoComp
 
-decomp :: Comp (U3.Union r1 r2 r3) a -> Comp (U2.Union r2 r3) a
-decomp (Value a)            = Value a
-decomp (Effect (U3.P2 r) f) = Effect (U2.P1 r) (decomp . f) 
-decomp (Effect (U3.P3 r) f) = Effect (U2.P2 r) (decomp . f)
-
 runGet :: Comp (U3.Union IO r2 r3) a -> Comp (U2.Union r2 r3) a
-runGet (Effect (U3.P1 io) f) = decomp $ f (unsafePerformIO io)
-runGet computation           = decomp computation
+runGet (Effect (U3.P1 io) f) = U3.removeP1 $ f (unsafePerformIO io)
+runGet computation           = U3.removeP1 computation
 
 runEncrypt :: Comp (U2.Union Future r2) a -> Comp r2 a
 runEncrypt (Value a)                     = (Value a)
