@@ -13,14 +13,14 @@ instance Functor (Comp r) where
 instance Applicative (Comp r) where
     pure a = Value a
     
-    (Value f) <*> (Value a)         = Value (f a)
+    (Value f)     <*> (Value a)     = Value (f a)
     (Effect r1 f) <*> (Effect r2 g) = Effect r1 (\x -> (f x) <*> (Effect r2 (\y -> (g y))))
-    (Value f) <*> (Effect r g)      = Effect r (\x -> (Value f) <*> (g x))
-    (Effect r f) <*> (Value g)      = Effect r (\x -> (f x) <*> (Value g))
+    (Value f)     <*> (Effect r g)  = Effect r (\x -> (Value f) <*> (g x))
+    (Effect r f)  <*> (Value g)     = Effect r (\x -> (f x) <*> (Value g))
 
 instance Monad (Comp r) where
     return a = pure a
-    (Value a) >>= f    = f a
+    (Value a)    >>= f = f a
     (Effect r f) >>= g = Effect r (\x -> (f x) >>= g)
 
 send :: r a -> Comp r a
