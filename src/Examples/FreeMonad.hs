@@ -1,13 +1,11 @@
-{-# LANGUAGE GADTs #-}
-
 module Examples.FreeMonad where
 
 import Effects.Vertical.Free.Free
 import Effects.Future
 import Effects.Writer
 import System.IO.Unsafe (unsafePerformIO)
-import Data.IORef (newIORef, readIORef, modifyIORef)
-import Data.List (find, deleteBy)
+import Data.IORef (newIORef, readIORef)
+import Data.List (find)
 import Data.Monoid ((<>))
 
 data Entry = Entry { index :: String, version :: Integer, payload :: Int } deriving (Show)

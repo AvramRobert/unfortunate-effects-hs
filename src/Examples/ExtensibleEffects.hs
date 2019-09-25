@@ -1,4 +1,4 @@
-{-# LANGUAGE TypeOperators, DataKinds, FlexibleContexts, MonoLocalBinds, GADTs #-}
+{-# LANGUAGE TypeOperators, DataKinds, FlexibleContexts, MonoLocalBinds #-}
 
 module Examples.ExtensibleEffects where
 
@@ -7,8 +7,8 @@ import Effects.Horizontal.Eff
 import Effects.Future
 import Effects.Writer
 import System.IO.Unsafe (unsafePerformIO)
-import Data.IORef (newIORef, readIORef, modifyIORef)
-import Data.List (find, deleteBy)
+import Data.IORef (newIORef, readIORef)
+import Data.List (find)
 import Data.Monoid ((<>))
 
 data Entry = Entry { index :: String, version :: Integer, payload :: Int } deriving (Show)
@@ -61,9 +61,6 @@ runEcho (Effect r f) = reRun $ decompose r
           reRun (Right (Writer logs a)) = fmap (merge logs) $ runEcho (f a)
           merge logs (rest, a)          = (logs <> rest, a)
 
--- The problem with this is that i sort of have to let it infer everything that I do
--- If I separate these things into separate functions, I have to prove, for each, that the kind i'm trying to add to the union can be a member
--- So that the union can add it to itself and infer a new list.  
 readEncrypt :: String -> Comp (Union (IO : Future : (Writer [String]) : l)) (Maybe String)
 readEncrypt id = do
     mentry    <- get id

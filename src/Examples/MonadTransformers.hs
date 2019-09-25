@@ -1,14 +1,13 @@
 module Examples.MonadTransformers where
 
 import Effects.Vertical.Lift
-import Effects.Vertical.Transformers.MaybeT
 import Effects.Vertical.Transformers.FutureT
 import Effects.Vertical.Transformers.WriterT
 import Effects.Writer
 import Effects.Future (Future (Async, Sync))
 import System.IO.Unsafe (unsafePerformIO)
-import Data.IORef (newIORef, readIORef, modifyIORef)
-import Data.List (find, deleteBy)
+import Data.IORef (newIORef, readIORef)
+import Data.List (find)
 
 type Effect a = (FutureT (WriterT [String] IO)) a
 
