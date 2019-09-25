@@ -1,4 +1,4 @@
-{-# LANGUAGE GADTs, RankNTypes #-}
+{-# LANGUAGE GADTs #-}
 
 module Examples.FreeMonad where
 
@@ -26,18 +26,12 @@ instance Functor Op where
 
 dbRef = unsafePerformIO $ newIORef [Entry { index = "a", version = 1, payload = 2 }]
 
-fromDB :: String -> IO (Maybe Entry)
-fromDB id = fmap (find value) $ readIORef dbRef
-    where value = (== id) . index
-
 hash :: Entry -> String
 hash (Entry id version payload) = id <> "::" <> (show version) <> "::" <> (show payload)
 
 getComp :: String -> IO (Maybe Entry)
-getComp id = do
-        db <- readIORef dbRef
-        return (find value db)
-    where value = (== id) . index 
+getComp id = fmap (find value) $ readIORef dbRef
+    where value = (== id) . index
 
 encryptComp :: Maybe Entry -> Future (Maybe String)
 encryptComp (Just entry) = Async $ return $ Just $ hash entry
@@ -55,6 +49,18 @@ encrypt mentry = liftF $ Encrypt mentry id
 echo :: String -> DBOp ()
 echo msg = liftF $ Echo msg id
 
+run :: DBOp (Maybe String) -> Writer [String] (Maybe String)
+run = interpret unravel
+    where unravel (Get id f)         = return $ f $ unsafePerformIO $ getComp id
+          unravel (Encrypt entry f)  = return $ f $ perform $ encryptComp entry
+          unravel (Echo msg f)       = fmap f $ echoComp msg
+          perform (Async io)         = unsafePerformIO io
+          perform (Sync a)           = a
+
+-- I can sort-of write inter-dependent computations, but I have to coerce them to the same return type and monad of choice
+-- If I want logs, I have to coerce them to `Writer`, so IO shit has to be done separately 
+-- The function in every branch of the algebra coerces the things accordingly, but this just looks wrong.
+
 readEncrypt :: String -> DBOp (Maybe String)
 readEncrypt id = do
     mentry    <- get id
@@ -63,3 +69,7 @@ readEncrypt id = do
     _         <- echo ("Encryped entry")
     _         <- echo ("Value is: " <> (show encrypted))
     return encrypted
+
+main :: IO ()
+main = let (Writer logs _) = run $ readEncrypt "a"
+       in putStrLn $ unlines logs
