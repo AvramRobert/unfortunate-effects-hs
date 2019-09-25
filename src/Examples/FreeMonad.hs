@@ -17,12 +17,12 @@ data Op a =
     Encrypt (Maybe Entry) (Maybe String -> a) |
     Echo String (() -> a)
 
-type DBOp = Free Op
-
 instance Functor Op where
     fmap f (Get x g)     = Get x (f . g)
     fmap f (Encrypt m g) = Encrypt m (f . g)
     fmap f (Echo s g)    = Echo s (f . g)
+
+type Effect a = Free Op a
 
 dbRef = unsafePerformIO $ newIORef [Entry { index = "a", version = 1, payload = 2 }]
 
@@ -40,16 +40,16 @@ encryptComp (Nothing)    = Sync Nothing
 echoComp :: String -> Writer [String] ()
 echoComp msg = tell [msg]
 
-get :: String -> DBOp (Maybe Entry)
+get :: String -> Effect (Maybe Entry)
 get index = liftF $ Get index id
 
-encrypt :: Maybe Entry -> DBOp (Maybe String)
+encrypt :: Maybe Entry -> Effect (Maybe String)
 encrypt mentry = liftF $ Encrypt mentry id
 
-echo :: String -> DBOp ()
+echo :: String -> Effect ()
 echo msg = liftF $ Echo msg id
 
-run :: DBOp (Maybe String) -> Writer [String] (Maybe String)
+run :: Effect (Maybe String) -> Writer [String] (Maybe String)
 run = interpret unravel
     where unravel (Get id f)         = return $ f $ unsafePerformIO $ getComp id
           unravel (Encrypt entry f)  = return $ f $ perform $ encryptComp entry
@@ -61,7 +61,7 @@ run = interpret unravel
 -- If I want logs, I have to coerce them to `Writer`, so IO shit has to be done separately 
 -- The function in every branch of the algebra coerces the things accordingly, but this just looks wrong.
 
-readEncrypt :: String -> DBOp (Maybe String)
+readEncrypt :: String -> Effect (Maybe String)
 readEncrypt id = do
     mentry    <- get id
     _         <- echo ("Entry is " <> (show mentry))

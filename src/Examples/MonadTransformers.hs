@@ -10,9 +10,7 @@ import System.IO.Unsafe (unsafePerformIO)
 import Data.IORef (newIORef, readIORef, modifyIORef)
 import Data.List (find, deleteBy)
 
-newtype Error = Error String deriving (Show)
-
-type DBOp a = (FutureT (WriterT [String] IO)) a
+type Effect a = (FutureT (WriterT [String] IO)) a
 
 data Entry = Entry { index :: String, version :: Integer, payload :: Int } deriving (Show)
 
@@ -34,22 +32,22 @@ echoComp msg = tell [msg]
 -- You have to think idiotocally recursivelly in reverse
 -- Depending on where and how you do the effect, you have to patch the sctructure in very odd ways in order to make it work
 
-get :: String -> DBOp (Maybe Entry)
+get :: String -> Effect (Maybe Entry)
 get id = FutureT $ lift $ fmap pure $ getComp id
 
-encrypt :: Maybe Entry -> DBOp (Maybe String)
+encrypt :: Maybe Entry -> Effect (Maybe String)
 encrypt (Just entry) = FutureT $ pure $ fmap Just $ encryptComp entry
 encrypt (Nothing)    = FutureT $ pure $ pure Nothing
 
-echo :: String -> DBOp ()
+echo :: String -> Effect ()
 echo msg = FutureT $ WriterT $ pure $ fmap pure $ echoComp msg
 
-run :: DBOp a -> ([String], a)
+run :: Effect a -> ([String], a)
 run op = case (unsafePerformIO $ runWriterT $ runFutureT op) of
                 (Writer logs (Async io)) -> (logs, unsafePerformIO io)
                 (Writer logs (Sync a))   -> (logs, a) 
 
-readEncrypt :: String -> DBOp (Maybe String)
+readEncrypt :: String -> Effect (Maybe String)
 readEncrypt id = do
     mentry    <- get id
     _         <- echo ("Entry is " <> (show mentry))
