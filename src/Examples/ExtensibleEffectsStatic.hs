@@ -17,10 +17,8 @@ data Entry = Entry { index :: String, version :: Integer, payload :: Int } deriv
 dbRef = unsafePerformIO $ newIORef [Entry { index = "a", version = 1, payload = 2 }]
 
 fromDB :: String -> IO (Maybe Entry)
-fromDB id = do
-        db <- readIORef dbRef
-        return (find value db)
-    where value = (== id) . index 
+fromDB id = fmap (find value) $ readIORef dbRef
+    where value = (== id) . index
 
 hash :: Entry -> String
 hash (Entry id version payload) = id <> "::" <> (show version) <> "::" <> (show payload)
@@ -46,8 +44,8 @@ echo = U3.injectP3 . echoComp
 
 decomp :: Comp (U3.Union r1 r2 r3) a -> Comp (U2.Union r2 r3) a
 decomp (Value a)            = Value a
-decomp (Effect (U3.P2 r) f) = Effect (U2.P1 r) (\x -> decomp $ f x) 
-decomp (Effect (U3.P3 r) f) = Effect (U2.P2 r) (\x -> decomp $ f x)
+decomp (Effect (U3.P2 r) f) = Effect (U2.P1 r) (decomp . f) 
+decomp (Effect (U3.P3 r) f) = Effect (U2.P2 r) (decomp . f)
 
 runGet :: Comp (U3.Union IO r2 r3) a -> Comp (U2.Union r2 r3) a
 runGet (Effect (U3.P1 io) f) = decomp $ f (unsafePerformIO io)
@@ -57,12 +55,12 @@ runEncrypt :: Comp (U2.Union Future r2) a -> Comp r2 a
 runEncrypt (Value a)                     = (Value a)
 runEncrypt (Effect (U2.P1 (Async io)) f) = runEncrypt $ f $ unsafePerformIO io
 runEncrypt (Effect (U2.P1 (Sync a)) f)   = runEncrypt $ f a
-runEncrypt (Effect (U2.P2 r) f)          = Effect r (\x -> runEncrypt $ f x)
+runEncrypt (Effect (U2.P2 r) f)          = Effect r (runEncrypt . f)
 
-runLog :: Comp (Writer [String]) a -> ([String], a)
-runLog (Value a)                  = ([], a)
-runLog (Effect (Writer logs a) f) = let (rest, x) = runLog (f a)
-                                    in (logs <> rest, x)
+runEcho :: Comp (Writer [String]) a -> ([String], a)
+runEcho (Value a)                  = ([], a)
+runEcho (Effect (Writer logs a) f) = let (rest, x) = runEcho (f a)
+                                     in (logs <> rest, x)
 
 readEncrypt :: String -> Comp (U3.Union IO Future (Writer [String])) (Maybe String)
 readEncrypt id = do
@@ -74,5 +72,5 @@ readEncrypt id = do
     return encrypted
 
 main :: IO ()
-main = let (logs, _) = runLog $ runEncrypt $ runGet $ readEncrypt "a"
+main = let (logs, _) = runEcho $ runEncrypt $ runGet $ readEncrypt "a"
        in putStrLn $ (unlines logs)

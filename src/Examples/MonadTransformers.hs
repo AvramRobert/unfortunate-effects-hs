@@ -22,10 +22,8 @@ hash :: Entry -> String
 hash (Entry id version payload) = id <> "::" <> (show version) <> "::" <> (show payload)
 
 getComp :: String -> IO (Maybe Entry)
-getComp id = do
-        db <- readIORef dbRef
-        return (find value db)
-    where value = (== id) . index 
+getComp id = fmap (find value) $ readIORef dbRef
+    where value = (== id) . index
 
 encryptComp :: Entry -> Future String
 encryptComp entry = Async $ return $ hash entry

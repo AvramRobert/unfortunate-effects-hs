@@ -16,9 +16,7 @@ data Entry = Entry { index :: String, version :: Integer, payload :: Int } deriv
 dbRef = unsafePerformIO $ newIORef [Entry { index = "a", version = 1, payload = 2 }]
 
 fromDB :: String -> IO (Maybe Entry)
-fromDB id = do
-        db <- readIORef dbRef
-        return (find value db)
+fromDB id = fmap (find value) $ readIORef dbRef
     where value = (== id) . index 
 
 hash :: Entry -> String
@@ -45,23 +43,23 @@ echo = inject . echoComp
 
 runGet :: Comp (Union (IO : l)) a -> Comp (Union l) a
 runGet (Value a)    = Value a
-runGet (Effect r f) = case (decompose r) of 
-    (Left union) -> Effect union (\x -> runGet $ f x)
-    (Right io)   -> runGet $ f $ unsafePerformIO io
+runGet (Effect r f) = reRun $ decompose r 
+    where reRun (Left union) = Effect union (runGet . f)
+          reRun (Right io)   = runGet $ f $ unsafePerformIO io
 
 runEncrypt :: Comp (Union (Future : l)) a -> Comp (Union l) a
 runEncrypt (Value a)    = Value a
-runEncrypt (Effect r f) = case (decompose r) of
-    (Left union)       -> Effect union (\x -> runEncrypt $ f x)
-    (Right (Async io)) -> runEncrypt $ f $ unsafePerformIO io
-    (Right (Sync a))   -> runEncrypt $ f a
+runEncrypt (Effect r f) = reRun $ decompose r 
+    where reRun (Left union)       = Effect union (runEncrypt . f)
+          reRun (Right (Async io)) = runEncrypt $ f $ unsafePerformIO io
+          reRun (Right (Sync a))   = runEncrypt $ f a
 
-runLog :: Comp (Union ((Writer [String]) : l)) a -> Comp (Union l) ([String], a)
-runLog (Value a)    = Value ([], a)
-runLog (Effect r f) = case (decompose r) of
-    (Left union)   -> Effect union (\x -> runLog $ f x)
-    (Right (Writer logs a)) -> fmap insertLogs $ runLog (f a)
-        where insertLogs (rest, res) = (logs <> rest, res)
+runEcho :: Comp (Union ((Writer [String]) : l)) a -> Comp (Union l) ([String], a)
+runEcho (Value a)    = Value ([], a)
+runEcho (Effect r f) = reRun $ decompose r
+    where reRun (Left union)            = Effect union (runEcho . f)
+          reRun (Right (Writer logs a)) = fmap (merge logs) $ runEcho (f a)
+          merge logs (rest, a)          = (logs <> rest, a)
 
 -- The problem with this is that i sort of have to let it infer everything that I do
 -- If I separate these things into separate functions, I have to prove, for each, that the kind i'm trying to add to the union can be a member
@@ -76,5 +74,5 @@ readEncrypt id = do
     return encrypted
 
 main :: IO ()
-main = let (logs, _) = terminate $ runLog $ runEncrypt $ runGet $ readEncrypt "a"
+main = let (logs, _) = terminate $ runEcho $ runEncrypt $ runGet $ readEncrypt "a"
        in putStrLn $ unlines logs
