@@ -57,10 +57,6 @@ run = interpret unravel
           perform (Async io)         = unsafePerformIO io
           perform (Sync a)           = a
 
--- I can sort-of write inter-dependent computations, but I have to coerce them to the same return type and monad of choice
--- If I want logs, I have to coerce them to `Writer`, so IO shit has to be done separately 
--- The function in every branch of the algebra coerces the things accordingly, but this just looks wrong.
-
 readEncrypt :: String -> Effect (Maybe String)
 readEncrypt id = do
     mentry    <- get id
