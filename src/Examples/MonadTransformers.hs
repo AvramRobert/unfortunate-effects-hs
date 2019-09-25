@@ -29,9 +29,6 @@ encryptComp entry = Async $ return $ hash entry
 echoComp :: String -> Writer [String] ()
 echoComp msg = tell [msg]
 
--- You have to think idiotocally recursivelly in reverse
--- Depending on where and how you do the effect, you have to patch the sctructure in very odd ways in order to make it work
-
 get :: String -> Effect (Maybe Entry)
 get id = FutureT $ lift $ fmap pure $ getComp id
 

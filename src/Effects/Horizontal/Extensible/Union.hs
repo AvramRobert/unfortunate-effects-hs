@@ -1,6 +1,6 @@
 {-# LANGUAGE TypeOperators, DataKinds, MonoLocalBinds #-}
 
-module Effects.Horizontal.Dynamic.Union (Union, Member, inject, terminate, decompose) where
+module Effects.Horizontal.Extensible.Union (Union, Member, inject, terminate, decompose) where
 
 import Effects.Horizontal.Eff
 import Data.Open.Union

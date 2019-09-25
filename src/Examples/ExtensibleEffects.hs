@@ -1,8 +1,8 @@
 {-# LANGUAGE TypeOperators, DataKinds, FlexibleContexts, MonoLocalBinds, GADTs #-}
 
-module Examples.ExtensibleEffectsDynamic where
+module Examples.ExtensibleEffects where
 
-import Effects.Horizontal.Dynamic.Union
+import Effects.Horizontal.Extensible.Union
 import Effects.Horizontal.Eff
 import Effects.Future
 import Effects.Writer
