@@ -15,15 +15,15 @@ instance Functor Future where
 instance Applicative Future where
     pure = Sync
     
-    (Sync f) <*> (Async a) = (Async (pure f)) <*> (Async a)
-    (Async f) <*> (Sync a) = (Async f) <*> (Async (pure a))  
+    (Sync f)    <*> (Async a)   = (Async (pure f)) <*> (Async a)
+    (Async f)   <*> (Sync a)    = (Async f) <*> (Async (pure a))  
     (Async iof) <*> (Async ioa) = Async (do 
-                            f <- iof
-                            a <- ioa
-                            return (f a))
+                                f <- iof
+                                a <- ioa
+                                return (f a))
     
 instance Monad Future where
-    (Sync a) >>= f = f a
+    (Sync a)   >>= f = f a
     (Async io) >>= f = Async $ (fmap f io) >>= unwrap
         where unwrap (Async io) = io
               unwrap (Sync a)   = pure a

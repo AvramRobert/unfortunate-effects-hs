@@ -8,7 +8,7 @@ data Comp r a where
 
 instance Functor (Comp r) where
     fmap f (Value a)    = Value (f a)
-    fmap f (Effect r g) = Effect r (\x -> fmap f (g x))
+    fmap f (Effect r g) = Effect r ((fmap f) . g)
 
 instance Applicative (Comp r) where
     pure a = Value a

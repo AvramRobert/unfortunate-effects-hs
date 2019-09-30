@@ -10,7 +10,7 @@ decompose = decomp
 
 inject :: (Member r l) => Comp r a -> Comp (Union l) a
 inject (Value a)    = Value a
-inject (Effect r f) = Effect (inj r) (\x -> inject $ f x)
+inject (Effect r f) = Effect (inj r) (inject . f)
 
 terminate :: Comp (Union '[]) a -> a
 terminate (Value a) = a

@@ -12,15 +12,15 @@ data Union r1 r2 r3 a where
 
 injectP1 :: Comp r1 a -> Comp (Union r1 r2 r3) a
 injectP1 (Value a)    = Value a
-injectP1 (Effect r f) = Effect (P1 r) (\x -> injectP1 $ f x)
+injectP1 (Effect r f) = Effect (P1 r) (injectP1 . f)
 
 injectP2 :: Comp r2 a -> Comp (Union r1 r2 r3) a
 injectP2 (Value a)    = Value a
-injectP2 (Effect r f) = Effect (P2 r) (\x -> injectP2 $ f x)
+injectP2 (Effect r f) = Effect (P2 r) (injectP2 . f)
 
 injectP3 :: Comp r3 a -> Comp (Union r1 r2 r3) a
 injectP3 (Value a)    = Value a
-injectP3 (Effect r f) = Effect (P3 r) (\x -> injectP3 $ f x)
+injectP3 (Effect r f) = Effect (P3 r) (injectP3 . f)
 
 removeP1 :: Comp (Union r1 r2 r3) a -> Comp (U2.Union r2 r3) a
 removeP1 (Value a)         = Value a
